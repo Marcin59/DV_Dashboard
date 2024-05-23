@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(leaflet)
 library(shinydashboard)
 
 dashboardPage(
@@ -19,8 +20,23 @@ dashboardPage(
     )
   ),
   dashboardBody(
+    tags$head(
+      tags$style(HTML("
+      #map {
+        height: 100vh !important;
+      }
+    "))
+    ),
     tabItems(
-      tabItem(tabName = "overview", fluidRow()),
+      tabItem(tabName = "overview", fluidRow(
+        column(
+          3
+        ),
+        column(
+          9, 
+          leafletOutput("map", height = "100%")
+        )
+      )),
       tabItem(tabName = "products",
           tabBox(
             width = 12,
