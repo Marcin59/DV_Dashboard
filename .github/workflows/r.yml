@@ -29,6 +29,6 @@ jobs:
         shell: Rscript {0}
       - name: shinyapps deploy
         run: |
-             rsconnect::setAccountInfo(name='shahronak', token='${{secrets.SHINYAPPS_TOKEN}}', secret='${{secrets.SHINYAPPS_SECRET}}')
+             rsconnect::setAccountInfo(name= 'marcinkapiszewski156048', token='${{secrets.SHINYAPPS_TOKEN}}', secret='${{secrets.SHINYAPPS_SECRET}}')
              rsconnect::deployApp(appName = 'Dashboard',account = 'marcinkapiszewski156048', server = 'shinyapps.io', forceUpdate = TRUE)
         shell: Rscript {0}
