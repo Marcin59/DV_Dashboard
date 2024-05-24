@@ -19,6 +19,7 @@ The data includes detailed information on sales, customers, products, stores, an
 │   └── Exchange_Rates.csv
 ├── server.R
 ├── ui.R
+├── styles.css
 ├── README.md
 ```
 ## Content
@@ -26,6 +27,7 @@ The data includes detailed information on sales, customers, products, stores, an
 - data/: This directory contains the CSV files used in the dashboard.
 - server.R: The server logic of the Shiny application.
 - ui.R: The user interface definition of the Shiny application.
+- styles.css: Custom CSS styles for the dashboard.
 - README.md: This file, providing an overview of the project.
 
 ## [Data](https://mavenanalytics.io/data-playground)
