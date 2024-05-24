@@ -27,13 +27,14 @@ dashboardPage(
           box(
             width = 8, 
             height = "calc(100vh - 50px)",
-            tags$style(type = "text/css", "#map {position: relative; height: 650px !important;}"),
-            leafletOutput("map"),
+            box(
+              width = 12,
+              leafletOutput("map", height = "calc((100vh - 50px) * 0.64)",)
+            ),
             tags$style(type = "text/css", ".col-sm-12 {padding: 0 !important;}"),
             box(
               width = 12,
-              height = "250px",
-              plotOutput("incomePlot", height = "250px",)
+              plotOutput("incomePlot", height = "calc((100vh - 50px) * 0.34)",)
             )
           ),
           box(
