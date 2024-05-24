@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(leaflet)
 library(shinydashboard)
 
 dashboardPage(
@@ -19,35 +20,61 @@ dashboardPage(
     )
   ),
   dashboardBody(
-    tabItems(
-      tabItem(tabName = "overview", fluidRow()),
-      tabItem(tabName = "products",
-          tabBox(
-            width = 12,
-            fluidRow(
-              column(4,
-                     selectInput("categoryInput",
-                                 "Category:",
-                                 choices = "")
-              ),
-              column(4,
-                     selectInput("brandInput",
-                                 "Brand:",
-                                 choices = "")
-              ),
-              column(4,
-                     selectInput("colorInput",
-                                 "Color:",
-                                 choices = "")
-              ),
+    includeCSS("./styles.css"),
+    fluidPage(
+      tabItems(
+        tabItem(tabName = "overview", fluidRow(
+          box(
+            width = 8, 
+            height = "900px",
+            tags$style(type = "text/css", "#map {position: relative; height: 650px !important;}"),
+            leafletOutput("map"),
+            tags$style(type = "text/css", ".col-sm-12 {padding: 0 !important;}"),
+            box(
+              width = 12,
+              height = "250px",
+              plotOutput("testPlot", height = "200px")
+            )
+          ),
+          box(
+            width = 4,
+            height = "900px",
+            valueBox(
+              width = 12,
+              h4("Selected Countries"),
+              textOutput("selected_countries"),
             ),
-            fluidRow(
-              column(
-                12,
-                dataTableOutput("productsTable")
-              )
-            )          
+            plotOutput("testPlot", height = "200px")
           )
+        )),
+        tabItem(tabName = "products",
+                tabBox(
+                  width = 12,
+                  fluidRow(
+                    box(width = 4,
+                           selectInput("categoryInput",
+                                       "Category:",
+                                       choices = "")
+                    ),
+                    box(width = 4,
+                           selectInput("brandInput",
+                                       "Brand:",
+                                       choices = "")
+                    ),
+                    box(width = 4,
+                           selectInput("colorInput",
+                                       "Color:",
+                                       choices = "")
+                    ),
+                  ),
+                  fluidRow(
+                    column(
+                      12,
+                      dataTableOutput("productsTable")
+                    )
+                  )          
+                )
+        )
       )
     )
   )
