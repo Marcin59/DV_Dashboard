@@ -22,18 +22,18 @@ function(input, output, session) {
     selected_countries <- reactiveVal(c("United States of America"))
   
     products <- read.csv("./data/Products.csv")
-    
-    updateSelectInput(session, "categoryInput", 
-                      choices =  c("All", unique(products$Category)))
-    updateSelectInput(session, "brandInput", 
-                      choices =  c("All", unique(products$Brand)))
-    updateSelectInput(session, "colorInput", 
-                      choices =  c("All", unique(products$Color)))
-    
-    
+    sales <- read.csv("./data/Sales.csv")
+    customers <- read.csv("./data/Customers.csv")
+    exchange_rates <- read.csv("./data/Exchange_Rates.csv")
     countries_area <- ne_countries(scale = "medium", returnclass = "sf")
     stores <- read.csv("./data/Stores.csv")
     stores$Country <- gsub("United States", "United States of America", stores$Country)
+    
+    sales <- sales %>%
+      left_join(stores, by = c("StoreKey")) %>%
+      left_join(exchange_rates, by = c("Currency.Code" = "Currency", "Order.Date" = "Date")) %>%
+      mutate(Order.Date = as.Date(Order.Date, format = "%m/%d/%Y")) %>%
+      mutate(USDQuantity = Quantity * Exchange)
     
     stores <- stores %>%
       group_by(Country) %>%
@@ -45,7 +45,18 @@ function(input, output, session) {
     
     rv <- reactiveValues(
       stores = stores,
+      income = sales %>%
+        filter(Country %in% stores[stores$clicked == 1,]$Country) %>%
+        group_by(Order.Date) %>%
+        summarize(income = sum(USDQuantity))
     )
+    
+    updateSelectInput(session, "categoryInput", 
+                      choices =  c("All", unique(products$Category)))
+    updateSelectInput(session, "brandInput", 
+                      choices =  c("All", unique(products$Brand)))
+    updateSelectInput(session, "colorInput", 
+                      choices =  c("All", unique(products$Color)))
     
     output$productsTable <- renderDataTable({
       p <- products
@@ -58,7 +69,13 @@ function(input, output, session) {
       if (input$colorInput != "All") {
         p <- p[p$Color == input$colorInput,]
       }
-      p})
+      p},
+      options = list(
+        pageLength = 10,
+        dom = 'ftp',
+        autoWidth = TRUE,
+        scrollX = TRUE
+      ))
     
     output$map <- renderLeaflet({
       leaflet(rv$stores) %>%
@@ -90,6 +107,10 @@ function(input, output, session) {
       clicked_point <- input$map_shape_click
       rv$stores[rv$stores$Country == clicked_point$id,]$clicked <- (rv$stores[rv$stores$Country == clicked_point$id,]$clicked + 1) %% 2
       clicked_store = rv$stores[rv$stores$Country == clicked_point$id,]
+      rv$income <- sales %>%
+        filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
+        group_by(Order.Date) %>%
+        mutate(income = sum(USDQuantity))
       leafletProxy("map") %>% 
         removeShape(clicked_point$id) %>%
         addPolygons(
@@ -119,6 +140,21 @@ function(input, output, session) {
       rv$stores[rv$stores$clicked==1,]$Country
     })
     
+    output$numOfStores <- renderText({
+      (rv$stores[rv$stores$clicked==1,] %>%
+        summarise(sum = sum(numOfStores)))$sum
+    })
+    
+    output$numOfCustomers<- renderText({
+      (customers[rv$stores$clicked==1,] %>%
+         summarise(sum = n()))$sum
+    })
+    
+    output$numOfProducts<- renderText({
+      (products %>%
+         summarise(sum = n()))$sum
+    })
+    
     output$testPlot <- renderPlot(
       ggplot(rv$stores[rv$stores$clicked==1,], aes(y = numOfStores, x = Country)) +
         geom_boxplot() +
@@ -127,4 +163,12 @@ function(input, output, session) {
              y = "Country") +
         theme_minimal()
     )
+    output$incomePlot <- renderPlot({
+      ggplot(rv$income, aes(x = Order.Date, y = cumsum(income))) +
+        geom_line() +
+        labs(title = "Income Over Time",
+             x = "Order Date",
+             y = "Income") +
+        theme_minimal()
+    })
 }

@@ -3,13 +3,21 @@ section.content{
 }
 
 .col-sm-4{
-  padding: 2 !important;
+  padding: 0 !important;
 }
 
 .col-sm-8{
-  padding: 2 !important;
+  padding: 0 !important;
 }
 
 .box-body{
   padding: 0 !important;
+}
+
+.row{
+  position: relative;
+}
+
+.box{
+  margin: 0 !important;
 }

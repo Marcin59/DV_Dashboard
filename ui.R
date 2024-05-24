@@ -26,31 +26,43 @@ dashboardPage(
         tabItem(tabName = "overview", fluidRow(
           box(
             width = 8, 
-            height = "900px",
+            height = "calc(100vh - 50px)",
             tags$style(type = "text/css", "#map {position: relative; height: 650px !important;}"),
             leafletOutput("map"),
             tags$style(type = "text/css", ".col-sm-12 {padding: 0 !important;}"),
             box(
               width = 12,
               height = "250px",
-              plotOutput("testPlot", height = "200px")
+              plotOutput("incomePlot", height = "250px",)
             )
           ),
           box(
             width = 4,
-            height = "900px",
+            height = "calc(100vh - 50px)",
             valueBox(
-              width = 12,
-              h4("Selected Countries"),
-              textOutput("selected_countries"),
+              width = 4,
+              h4("numOfStores"),
+              textOutput("numOfStores"),
+            ),
+            valueBox(
+              width = 4,
+              h4("numOfCustomers"),
+              textOutput("numOfCustomers"),
+            ),
+            valueBox(
+              width = 4,
+              h4("numOfProducts"),
+              textOutput("numOfProducts"),
             ),
             plotOutput("testPlot", height = "200px")
           )
         )),
         tabItem(tabName = "products",
-                tabBox(
-                  width = 12,
+                box(
+                  width = "100%",
+                  height = "calc(100vh - 50px)",
                   fluidRow(
+                    width = 12,
                     box(width = 4,
                            selectInput("categoryInput",
                                        "Category:",
