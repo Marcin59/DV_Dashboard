@@ -19,16 +19,17 @@ jobs:
   deploy:
     name: Deploy to shinyapps
 
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v2
-      - name: deploy
-        uses: BDSI-Utwente/shinyapps-deploy-github-action@v1
-        with:
-          # account and application name (https://<accountName>.shinyapps.io/<appName>)
-          appName: Dashboard
-          accountName: "marcinkapiszewski156048"
-
-          # token and secret obtained from https://www.shinyapps.io/admin/#/tokens
-          accountToken: ${{ secrets.SHINYAPPS_TOKEN }}
-          accountSecret: ${{ secrets.SHINYAPPS_SECRET }}
+      - uses: r-lib/actions/setup-r@v2
+      - name: Install dependency
+        run: |
+          install.packages(c("shiny", "rsconnect", "devtools", "rvest", "dplyr", "xml2", "XML", "httr", "faq", "slickR", "shinydashboard", "dashboardthemes", "shinycssloaders", "sf", "rnaturalearth", "rnaturalearthdata", "ggplot2"), type = "binary")
+          devtools::install_github("dgrtwo/stackr")
+        shell: Rscript {0}
+      - name: shinyapps deploy
+        run: |
+             rsconnect::setAccountInfo(name='shahronak', token='${{secrets.SHINYAPPS_TOKEN}}', secret='${{secrets.SHINYAPPS_SECRET}}')
+             rsconnect::deployApp(appName = 'my_shiny_app',account = 'shahronak', server = 'shinyapps.io', forceUpdate = TRUE)
+        shell: Rscript {0}
