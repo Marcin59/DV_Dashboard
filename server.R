@@ -172,4 +172,16 @@ function(input, output, session) {
              y = "Income") +
         theme_minimal()
     })
+    output$top_products <- renderPlot({
+      sales %>%
+        filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
+        group_by(ProductKey) %>%
+        summarise(TotalSales = n()) %>%
+        top_n(10, TotalSales) %>%
+        left_join(products, by = "ProductKey") %>%
+        ggplot(aes(x = reorder(Product.Name, TotalSales), y = TotalSales)) +
+        geom_bar(stat = "identity", fill = "blue") +
+        coord_flip() +
+        labs(title = "Top 10 Products by Sales", x = "Product", y = "Total Sales")
+    })
 }

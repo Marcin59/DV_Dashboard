@@ -55,7 +55,8 @@ dashboardPage(
               h4("numOfProducts"),
               textOutput("numOfProducts"),
             ),
-            plotOutput("testPlot", height = "200px")
+            box(title = "Top 10 Products by Sales", solidHeader = TRUE, width = 12,
+                plotOutput("top_products")),
           )
         )),
         tabItem(tabName = "products",
