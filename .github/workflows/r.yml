@@ -26,7 +26,6 @@ jobs:
       - name: Install dependency
         run: |
           install.packages(c("shiny", "rsconnect", "devtools", "rvest", "dplyr", "xml2", "XML", "httr", "faq", "slickR", "shinydashboard", "dashboardthemes", "shinycssloaders", "sf", "rnaturalearth", "rnaturalearthdata", "ggplot2"), type = "binary")
-          devtools::install_github("dgrtwo/stackr")
         shell: Rscript {0}
       - name: shinyapps deploy
         run: |
