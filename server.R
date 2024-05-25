@@ -34,7 +34,7 @@ function(input, output, session) {
       left_join(stores, by = c("StoreKey")) %>%
       left_join(exchange_rates, by = c("Currency.Code" = "Currency", "Order.Date" = "Date")) %>%
       mutate(Order.Date = as.Date(Order.Date, format = "%m/%d/%Y")) %>%
-      mutate(USDQuantity = Quantity * Exchange)
+      mutate(USDQuantity = Quantity / Exchange)
     
     stores <- stores %>%
       group_by(Country) %>%
@@ -77,6 +77,49 @@ function(input, output, session) {
         autoWidth = TRUE,
         scrollX = TRUE
       ))
+    
+    currencies = c(unique(exchange_rates$Currency))
+    currencies_without_USD = currencies[currencies != "USD"]
+    updateSelectInput(session, "currencyInput", 
+                      choices =  currencies_without_USD)
+                      
+    
+    updateDateInput(session, "dateRateInput",
+                      min = min(as.Date(exchange_rates$Date, format = "%m/%d/%Y")),
+                      max = max(as.Date(exchange_rates$Date, format = "%m/%d/%Y")),
+                      value = max(as.Date(exchange_rates$Date, format = "%m/%d/%Y"))
+    )
+    
+    output$currencyAmountOutput <- renderText({
+      currencyAmount <- input$amountInput
+      currencyType <- input$currencyInput
+      rateDate <- input$dateRateInput
+      rateDate <- format(rateDate, format = "%m/%d/%Y")
+      rateDate <- sub("/0", "/", rateDate) # remove leading 0 from day
+      rateDate <- sub("^0", "", rateDate) # remove leading 0 from month
+      
+      rate <- exchange_rates %>%
+        filter(Currency == currencyType, Date == rateDate) %>%
+        select(Exchange)
+      
+      return(paste("Amount in USD: ", round(currencyAmount / rate$Exchange, 2)))
+    })
+    
+    output$currencyRatePlot <- renderPlot({
+      currencyType <- input$currencyInput
+      rate <- exchange_rates %>%
+        filter(Currency == currencyType) %>%
+        mutate(Exchange = 1 / Exchange) %>%
+        mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+        ggplot(aes(x = Date, y = Exchange)) +
+        geom_line() +
+        labs(title = paste("Exchange rate for:", currencyType),
+             x = "Date",
+             y = "Exchange rate (USD)") +
+        theme_minimal()
+      rate
+    },
+    )
     
     output$map <- renderLeaflet({
       leaflet(rv$stores) %>%
