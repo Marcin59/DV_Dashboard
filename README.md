@@ -1,4 +1,8 @@
 ## Global Electronics Retailer Dashboard
+![workflow](https://github.com/Marcin59/DV_Dashboard/actions/workflows/r.yml/badge.svg)
+
+### [Demo](https://marcinkapiszewski156048.shinyapps.io/Dashboard/)
+Hosted on shinyapps.io free version, so can be a little slow.
 ### Overview
 Welcome to the Global Electronics Retailer Dashboard project! 
 This repository contains an interactive R Shiny dashboard that provides
