@@ -18,7 +18,21 @@ dashboardPage(
     menuItem("Products", tabName = "products", icon = icon("th")),
     menuItem("Currency Exchange", tabName = "currency_exchange", icon = icon("exchange"))
   )),
-  dashboardBody(includeCSS("./styles.css"), fluidPage(tabItems(
+  dashboardBody(includeCSS("./styles.css"), fluidPage(
+    tags$head(
+      tags$script(
+        HTML(
+          "
+        Shiny.addCustomMessageHandler('update_button', function(message) {
+          var btn = $('#' + message.id);
+          btn.removeClass('btn-primary btn-default');
+          btn.addClass(message.class);
+        });
+        "
+        )
+      )
+    ),
+    tabItems(
     tabItem(tabName = "overview", fluidRow(
       box(
         width = 8,
@@ -36,9 +50,9 @@ dashboardPage(
       box(
         width = 4,
         height = "calc(100vh - 50px)",
-        valueBox(width = 4, h4("numOfStores"), textOutput("numOfStores"), ),
-        valueBox(width = 4, h4("numOfCustomers"), textOutput("numOfCustomers"), ),
-        valueBox(width = 4, h4("numOfProducts"), textOutput("numOfProducts"), ),
+        valueBox(width = 4, h4("#Stores"), textOutput("numOfStores"), ),
+        valueBox(width = 4, h4("#Customers"), textOutput("numOfCustomers"), ),
+        valueBox(width = 4, h4("#Products"), textOutput("numOfProducts"), ),
         box(
           title = "Top 10 Products by Sales",
           solidHeader = TRUE,
@@ -68,12 +82,19 @@ dashboardPage(
         height = "calc(100vh - 50px)",
         fluidRow(
           width = 12,
-          box(width = 4, numericInput("amountInput", "Amount:", value = 0)),
-          box(width = 4, selectInput("currencyInput", "Currency:", choices="EUR")),
-          box(width = 4, dateInput("dateRateInput", "Date:", value = "2015-01-01")),
+          column(width = 3, actionButton("btn_eur", "EUR", class = "btn-primary", style = "width: 100%")),
+          column(width = 3, actionButton("btn_gbp", "GBP", class = "btn-default", style = "width: 100%")),
+          column(width = 3, actionButton("btn_cad", "CAD", class = "btn-default", style = "width: 100%")),
+          column(width = 3, actionButton("btn_aud", "AUD", class = "btn-default", style = "width: 100%"))
         ),
-        fluidRow(column(12, textOutput("currencyAmountOutput"))),
-        box(width=12, plotOutput("currencyRatePlot", height = "calc((100vh - 50px) * 0.8)")),
+        # UNUSED CURRENCY CONVERSION
+        # fluidRow(
+        #   width = 12,
+        #   box(width = 4, dateInput("dateRateInput", "Date:", value = "2015-01-01")),
+        #   box(width = 4, numericInput("amountInput", "Amount:", value = 0)),
+        #   box(width = 4, h4("faewa") ,textOutput("currencyAmountOutput")),
+        # ),
+        box(width=12, plotOutput("currencyRatePlot", height = "calc((100vh - 50px) * 0.9)")),
         # put previous box on the bottom of the page
       )
     )

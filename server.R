@@ -78,35 +78,71 @@ function(input, output, session) {
         scrollX = TRUE
       ))
     
-    currencies = c(unique(exchange_rates$Currency))
-    currencies_without_USD = currencies[currencies != "USD"]
-    updateSelectInput(session, "currencyInput", 
-                      choices =  currencies_without_USD)
-                      
+    # UNUSED CURRENCY CONVERSION
+    # currencies = c(unique(exchange_rates$Currency))
+    # currencies_without_USD = currencies[currencies != "USD"]
+    # updateSelectInput(session, "currencyInput", 
+    #                   choices =  currencies_without_USD)
+    #                   
+    # 
+    # updateDateInput(session, "dateRateInput",
+    #                   min = min(as.Date(exchange_rates$Date, format = "%m/%d/%Y")),
+    #                   max = max(as.Date(exchange_rates$Date, format = "%m/%d/%Y")),
+    #                   value = max(as.Date(exchange_rates$Date, format = "%m/%d/%Y"))
+    # )
     
-    updateDateInput(session, "dateRateInput",
-                      min = min(as.Date(exchange_rates$Date, format = "%m/%d/%Y")),
-                      max = max(as.Date(exchange_rates$Date, format = "%m/%d/%Y")),
-                      value = max(as.Date(exchange_rates$Date, format = "%m/%d/%Y"))
-    )
+    selected_currency <- reactiveVal("EUR")
     
-    output$currencyAmountOutput <- renderText({
-      currencyAmount <- input$amountInput
-      currencyType <- input$currencyInput
-      rateDate <- input$dateRateInput
-      rateDate <- format(rateDate, format = "%m/%d/%Y")
-      rateDate <- sub("/0", "/", rateDate) # remove leading 0 from day
-      rateDate <- sub("^0", "", rateDate) # remove leading 0 from month
-      
-      rate <- exchange_rates %>%
-        filter(Currency == currencyType, Date == rateDate) %>%
-        select(Exchange)
-      
-      return(paste("Amount in USD: ", round(currencyAmount / rate$Exchange, 2)))
+    update_buttons <- function(selected_button) {
+      buttons <- c("btn_gbp", "btn_eur", "btn_cad", "btn_aud")
+      for (button_id in buttons) {
+        if (button_id == selected_button) {
+          class <- "btn-primary"
+        } else {
+          class <- "btn-default"
+        }
+        session$sendCustomMessage(type = "update_button", message = list(id = button_id, class = class))
+      }
+    }
+    
+    # Observe button clicks and update selected_currency
+    observeEvent(input$btn_gbp, {
+      selected_currency("GBP")
+      update_buttons("btn_gbp")
     })
     
+    observeEvent(input$btn_eur, {
+      selected_currency("EUR")
+      update_buttons("btn_eur")
+    })
+    
+    observeEvent(input$btn_cad, {
+      selected_currency("CAD")
+      update_buttons("btn_cad")
+    })
+    
+    observeEvent(input$btn_aud, {
+      selected_currency("AUD")
+      update_buttons("btn_aud")
+    })
+    
+    # UNUSED CURRENCY CONVERSION
+    # output$currencyAmountOutput <- renderText({
+    #   currencyAmount <- input$amountInput
+    #   rateDate <- input$dateRateInput
+    #   rateDate <- format(rateDate, format = "%m/%d/%Y")
+    #   rateDate <- sub("/0", "/", rateDate) # remove leading 0 from day
+    #   rateDate <- sub("^0", "", rateDate) # remove leading 0 from month
+    #   
+    #   rate <- exchange_rates %>%
+    #     filter(Currency == selected_currency(), Date == rateDate) %>%
+    #     select(Exchange)
+    #   
+    #   return(paste("Amount in USD: ", round(currencyAmount / rate$Exchange, 2)))
+    # })
+    
     output$currencyRatePlot <- renderPlot({
-      currencyType <- input$currencyInput
+      currencyType <- selected_currency()
       rate <- exchange_rates %>%
         filter(Currency == currencyType) %>%
         mutate(Exchange = 1 / Exchange) %>%
@@ -116,7 +152,8 @@ function(input, output, session) {
         labs(title = paste("Exchange rate for:", currencyType),
              x = "Date",
              y = "Exchange rate (USD)") +
-        theme_minimal()
+        theme_minimal() +
+        theme(text = element_text(size=18))
       rate
     },
     )
@@ -213,7 +250,8 @@ function(input, output, session) {
         labs(title = "Income Over Time",
              x = "Order Date",
              y = "Income") +
-        theme_minimal()
+        theme_minimal() +
+        scale_y_continuous(labels = scales::comma)
     })
     output$top_products <- renderPlot({
       sales %>%
