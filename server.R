@@ -27,16 +27,16 @@ function(input, output, session) {
     customers <- read.csv("./data/Customers.csv")
     exchange_rates <- read.csv("./data/Exchange_Rates.csv")
     countries_area <- ne_countries(scale = "medium", returnclass = "sf")
-    stores <- read.csv("./data/Stores.csv")
-    stores$Country <- gsub("United States", "United States of America", stores$Country)
+    original_stores <- read.csv("./data/Stores.csv")
+    original_stores$Country <- gsub("United States", "United States of America", original_stores$Country)
     
     sales <- sales %>%
-      left_join(stores, by = c("StoreKey")) %>%
+      left_join(original_stores, by = c("StoreKey")) %>%
       left_join(exchange_rates, by = c("Currency.Code" = "Currency", "Order.Date" = "Date")) %>%
       mutate(Order.Date = as.Date(Order.Date, format = "%m/%d/%Y")) %>%
       mutate(USDQuantity = Quantity / Exchange)
     
-    stores <- stores %>%
+    stores <- original_stores %>%
       group_by(Country) %>%
       summarize(numOfStores = n()) %>%
       left_join(countries_boundaries, by = c("Country" = "name"))
@@ -48,7 +48,7 @@ function(input, output, session) {
       stores = stores,
       income = sales %>%
         filter(Country %in% stores[stores$clicked == 1,]$Country) %>%
-        group_by(Order.Date) %>%
+        group_by(Country, Order.Date) %>%
         summarize(income = sum(USDQuantity))
     )
     
@@ -173,7 +173,6 @@ function(input, output, session) {
           layerId = ~Country,
           highlightOptions = highlightOptions(
             weight = 2,
-            color = "#666",
             dashArray = "",
             fillOpacity = 0.7,
             bringToFront = TRUE),
@@ -190,8 +189,8 @@ function(input, output, session) {
       clicked_store = rv$stores[rv$stores$Country == clicked_point$id,]
       rv$income <- sales %>%
         filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
-        group_by(Order.Date) %>%
-        mutate(income = sum(USDQuantity))
+        group_by(Country, Order.Date) %>%
+        summarise(income = sum(USDQuantity))
       leafletProxy("map") %>% 
         removeShape(clicked_point$id) %>%
         addPolygons(
@@ -245,24 +244,88 @@ function(input, output, session) {
         theme_minimal()
     )
     output$incomePlot <- renderPlot({
-      ggplot(rv$income, aes(x = Order.Date, y = cumsum(income))) +
-        geom_line() +
-        labs(title = "Income Over Time",
+      df <- rv$income %>%
+        group_by(Country) %>%
+        arrange(Order.Date) %>%
+        mutate(cumulative_income = cumsum(income))  # Calculate cumulative sum within each group
+      
+      ggplot(df, aes(x = Order.Date, y = cumulative_income, fill = Country)) +
+        geom_area() +
+        labs(title = "Income Over Time by Country",
              x = "Order Date",
-             y = "Income") +
+             y = "Cumulative Income") +
         theme_minimal() +
-        scale_y_continuous(labels = scales::comma)
+        scale_y_continuous(labels = scales::comma) +
+        scale_fill_discrete(name = "Country") +
+        theme(
+          legend.position = c(0.02, 0.98),  # Adjust legend position
+          legend.justification = c(0, 1),    # Justify to top-left
+          legend.box.just = "left"           # Align legend to left
+        )
     })
     output$top_products <- renderPlot({
       sales %>%
         filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
         group_by(ProductKey) %>%
-        summarise(TotalSales = n()) %>%
-        top_n(10, TotalSales) %>%
+        summarise(TotalSales = sum(Quantity)) %>%  # Use sum(Quantity) to get the total sales
+        top_n(3, TotalSales) %>%
+        head(3) %>%
         left_join(products, by = "ProductKey") %>%
-        ggplot(aes(x = reorder(Product.Name, TotalSales), y = TotalSales)) +
-        geom_bar(stat = "identity", fill = "blue") +
+        ggplot(aes(y = reorder(Product.Name, TotalSales), x = TotalSales)) +  # Swap axes
+        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
+        geom_text(aes(label = Product.Name), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        labs(x = "Total Sales", y = "Product") +
+        theme(axis.text.y = element_blank(),           # Remove x-axis labels
+              legend.position = "none")                # Remove legend
+    })
+    
+    output$bottom_products <- renderPlot({
+      sales %>%
+        filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
+        group_by(ProductKey) %>%
+        summarise(TotalSales = sum(Quantity)) %>%  # Use sum(Quantity) to get the total sales
+        top_n(-3, TotalSales) %>%
+        tail(3) %>%
+        left_join(products, by = "ProductKey") %>%
+        ggplot(aes(y = reorder(Product.Name, TotalSales), x = TotalSales)) +  # Swap axes
+        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
+        geom_text(aes(label = Product.Name), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        labs(x = "Total Sales", y = "Product") +
+        theme(axis.text.y = element_blank(),           # Remove x-axis labels
+              legend.position = "none")                # Remove legend
+    })
+    
+    output$top_stores <- renderPlot({
+      sales %>%
+        filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
+        group_by(StoreKey) %>%
+        summarise(TotalSales = sum(USDQuantity)) %>%  # Use sum(Quantity) to get the total sales
+        top_n(3, TotalSales) %>%
+        head(3) %>%
+        left_join(original_stores, by = "StoreKey") %>%
+        ggplot(aes(x = reorder(State, TotalSales), y = TotalSales)) +
         coord_flip() +
-        labs(title = "Top 10 Products by Sales", x = "Product", y = "Total Sales")
+        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
+        geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        labs(x = "Store", y = "Total Income($)") +
+        theme(axis.text.y = element_blank(),           # Remove x-axis labels
+              legend.position = "none")                # Remove legend
+    })
+    
+    output$bottom_stores <- renderPlot({
+      sales %>%
+        filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
+        group_by(StoreKey) %>%
+        summarise(TotalSales = sum(USDQuantity)) %>%  # Use sum(Quantity) to get the total sales
+        top_n(-3, TotalSales) %>%
+        tail(3) %>%
+        left_join(original_stores, by = "StoreKey") %>%
+        ggplot(aes(x = reorder(State, TotalSales), y = TotalSales)) +
+        coord_flip() +
+        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
+        geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        labs(x = "Store", y = "Total Income($)") +
+        theme(axis.text.y = element_blank(),           # Remove x-axis labels
+              legend.position = "none")                # Remove legend
     })
 }

@@ -54,10 +54,28 @@ dashboardPage(
         valueBox(width = 4, h4("#Customers"), textOutput("numOfCustomers"), ),
         valueBox(width = 4, h4("#Products"), textOutput("numOfProducts"), ),
         box(
-          title = "Top 10 Products by Sales",
+          title = "Top 3 Products by Sales",
           solidHeader = TRUE,
           width = 12,
-          plotOutput("top_products")
+          plotOutput("top_products", height = "150px",)
+        ),
+        box(
+          title = "Bottom 3 Products by Sales",
+          solidHeader = TRUE,
+          width = 12,
+          plotOutput("bottom_products", height = "150px",)
+        ),
+        box(
+          title = "Top 3 Stores by Income",
+          solidHeader = TRUE,
+          width = 12,
+          plotOutput("top_stores", height = "150px",)
+        ),
+        box(
+          title = "Bottom 3 Stores by Income",
+          solidHeader = TRUE,
+          width = 12,
+          plotOutput("bottom_stores", height = "150px",)
         ),
       )
     )),
@@ -68,7 +86,7 @@ dashboardPage(
         height = "calc(100vh - 50px)",
         fluidRow(
           width = 12,
-          box(width = 4, selectInput("categoryInput", "Category:", choices = "")),
+          box(width = 4, selectInput("categoryInput", "Category:", choices = ""),),
           box(width = 4, selectInput("brandInput", "Brand:", choices = "")),
           box(width = 4, selectInput("colorInput", "Color:", choices = "")),
         ),
