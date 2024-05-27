@@ -1,6 +1,9 @@
 section.content{
   padding: 0 !important;
 }
+.small-box{
+  background:#3c8dbc !important;
+}
 
 .col-sm-4{
   padding: 0 !important;
