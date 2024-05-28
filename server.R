@@ -148,23 +148,14 @@ function(input, output, session) {
         mutate(Exchange = 1 / Exchange) %>%
         mutate(Date = as.Date(Date, format = "%m/%d/%Y"))
       
-      # Get the last value of the exchange rate
       last_value <- tail(rate$Exchange, 1)
       
-      # Create segments for the line with categories for color
       rate <- rate %>%
         mutate(NextExchange = lead(Exchange),
                NextDate = lead(Date),
                Category = ifelse(Exchange >= last_value & NextExchange >= last_value, "Above",
                                  ifelse(Exchange < last_value & NextExchange < last_value, "Below", "Transition")))
       
-      # Handle transition segments
-      transition_segments <- rate %>%
-        filter(Category == "Transition") %>%
-        mutate(Segment1_Category = ifelse(Exchange >= last_value, "Above", "Below"),
-               Segment2_Category = ifelse(NextExchange >= last_value, "Above", "Below"))
-      
-      # Create the plot
       ggplot() +
         geom_segment(data = rate %>% filter(Category == "Above"),
                      aes(x = Date, y = Exchange, xend = NextDate, yend = NextExchange),
@@ -172,7 +163,7 @@ function(input, output, session) {
         geom_segment(data = rate %>% filter(Category == "Below"),
                      aes(x = Date, y = Exchange, xend = NextDate, yend = NextExchange),
                      color = "red") +
-        geom_segment(data = transition_segments,
+        geom_segment(data = rate %>% filter(Category == "Transition"),
                      aes(x = Date, y = Exchange, xend = NextDate, yend = NextExchange),
                      color = "grey") +
         geom_hline(yintercept = last_value, linetype = "dashed") +
@@ -182,8 +173,6 @@ function(input, output, session) {
         theme_minimal() +
         theme(text = element_text(size = 18))
     })
-    
-    
     
     
     output$map <- renderLeaflet({
@@ -211,6 +200,8 @@ function(input, output, session) {
             direction = "auto")
         )
     })
+    
+    
     observeEvent(input$map_shape_click,{
       clicked_point <- input$map_shape_click
       rv$stores[rv$stores$Country == clicked_point$id,]$clicked <- (rv$stores[rv$stores$Country == clicked_point$id,]$clicked + 1) %% 2
