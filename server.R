@@ -146,17 +146,45 @@ function(input, output, session) {
       rate <- exchange_rates %>%
         filter(Currency == currencyType) %>%
         mutate(Exchange = 1 / Exchange) %>%
-        mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-        ggplot(aes(x = Date, y = Exchange)) +
-        geom_line() +
+        mutate(Date = as.Date(Date, format = "%m/%d/%Y"))
+      
+      # Get the last value of the exchange rate
+      last_value <- tail(rate$Exchange, 1)
+      
+      # Create segments for the line with categories for color
+      rate <- rate %>%
+        mutate(NextExchange = lead(Exchange),
+               NextDate = lead(Date),
+               Category = ifelse(Exchange >= last_value & NextExchange >= last_value, "Above",
+                                 ifelse(Exchange < last_value & NextExchange < last_value, "Below", "Transition")))
+      
+      # Handle transition segments
+      transition_segments <- rate %>%
+        filter(Category == "Transition") %>%
+        mutate(Segment1_Category = ifelse(Exchange >= last_value, "Above", "Below"),
+               Segment2_Category = ifelse(NextExchange >= last_value, "Above", "Below"))
+      
+      # Create the plot
+      ggplot() +
+        geom_segment(data = rate %>% filter(Category == "Above"),
+                     aes(x = Date, y = Exchange, xend = NextDate, yend = NextExchange),
+                     color = "green") +
+        geom_segment(data = rate %>% filter(Category == "Below"),
+                     aes(x = Date, y = Exchange, xend = NextDate, yend = NextExchange),
+                     color = "red") +
+        geom_segment(data = transition_segments,
+                     aes(x = Date, y = Exchange, xend = NextDate, yend = NextExchange),
+                     color = "grey") +
+        geom_hline(yintercept = last_value, linetype = "dashed") +
         labs(title = paste("Exchange rate for:", currencyType),
              x = "Date",
              y = "Exchange rate (USD)") +
         theme_minimal() +
-        theme(text = element_text(size=18))
-      rate
-    },
-    )
+        theme(text = element_text(size = 18))
+    })
+    
+    
+    
     
     output$map <- renderLeaflet({
       leaflet(rv$stores) %>%
