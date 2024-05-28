@@ -174,7 +174,6 @@ function(input, output, session) {
         theme(text = element_text(size = 18))
     })
     
-    
     output$map <- renderLeaflet({
       leaflet(rv$stores) %>%
         addTiles() %>%
@@ -201,8 +200,7 @@ function(input, output, session) {
         )
     })
     
-    
-    observeEvent(input$map_shape_click,{
+    observeEvent(input$map_shape_click, {
       clicked_point <- input$map_shape_click
       rv$stores[rv$stores$Country == clicked_point$id,]$clicked <- (rv$stores[rv$stores$Country == clicked_point$id,]$clicked + 1) %% 2
       clicked_store = rv$stores[rv$stores$Country == clicked_point$id,]
@@ -210,11 +208,16 @@ function(input, output, session) {
         filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
         group_by(Country, Order.Date) %>%
         summarise(income = sum(USDQuantity))
+      
+      # Create a color palette for the selected countries
+      selected_countries <- rv$stores[rv$stores$clicked == 1,]$Country
+      color_pal <- colorFactor(topo.colors(length(selected_countries)), domain = selected_countries)
+      
       leafletProxy("map") %>% 
-        removeShape(clicked_point$id) %>%
+        clearShapes() %>%  # Clear all shapes to redraw with new colors
         addPolygons(
-          data = st_as_sf(clicked_store),
-          fillColor = ~clicked,
+          data = st_as_sf(rv$stores),
+          fillColor = ~color_pal(Country),
           weight = 1,
           opacity = 1,
           color = "white",
@@ -233,11 +236,8 @@ function(input, output, session) {
             textsize = "15px",
             direction = "auto")
         )
-      selected_countries(rv$stores[rv$stores$clicked == 1,]$Country)
     })
-    output$selected_countries <- renderText({
-      rv$stores[rv$stores$clicked==1,]$Country
-    })
+    
     
     output$numOfStores <- renderText({
       (rv$stores[rv$stores$clicked==1,] %>%
@@ -262,6 +262,19 @@ function(input, output, session) {
              y = "Country") +
         theme_minimal()
     )
+    
+    country_palette <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#bcbd22")
+    
+    # Define a named vector to map countries to colors
+    country_colors <- c("Australia" = country_palette[1],
+                        "United States of America" = country_palette[2],
+                        "Italy" = country_palette[3],
+                        "France" = country_palette[4],
+                        "United Kingdom" = country_palette[5],
+                        "Canada" = country_palette[6],
+                        "Netherlands" = country_palette[7],
+                        "Germany" = country_palette[8])
+    
     output$incomePlot <- renderPlot({
       df <- rv$income %>%
         group_by(Country) %>%
@@ -275,7 +288,7 @@ function(input, output, session) {
              y = "Cumulative Income") +
         theme_minimal() +
         scale_y_continuous(labels = scales::comma) +
-        scale_fill_discrete(name = "Country") +
+        scale_fill_manual(values = country_colors, name = "Country") +
         theme(
           legend.position = c(0.02, 0.98),  # Adjust legend position
           legend.justification = c(0, 1),    # Justify to top-left
