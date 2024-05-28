@@ -180,12 +180,12 @@ function(input, output, session) {
         setView(lng = 0, lat = 50, zoom = 12/5) %>%
         addPolygons(
           data = st_as_sf(rv$stores),
-          fillColor = ~clicked,
+          fillColor = ~country_colors_factor(Country),
           weight = 1,
-          opacity = 1,
+          opacity = 0.7,
           color = "white",
           dashArray = "3",
-          fillOpacity = 0.7,
+          fillOpacity = ~ifelse(Country %in% stores[stores$clicked == 1,]$Country, 0.8, 0.2),
           layerId = ~Country,
           highlightOptions = highlightOptions(
             weight = 2,
@@ -217,12 +217,12 @@ function(input, output, session) {
         clearShapes() %>%  # Clear all shapes to redraw with new colors
         addPolygons(
           data = st_as_sf(rv$stores),
-          fillColor = ~color_pal(Country),
+          fillColor = ~country_colors_factor(Country),
           weight = 1,
           opacity = 1,
           color = "white",
           dashArray = "3",
-          fillOpacity = 0.7,
+          fillOpacity = ~ifelse(Country %in% rv$stores[rv$stores$clicked == 1,]$Country, 0.8, 0.2),
           layerId = ~Country,
           highlightOptions = highlightOptions(
             weight = 2,
@@ -264,16 +264,18 @@ function(input, output, session) {
     )
     
     country_palette <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#bcbd22")
+    countries = c("Australia", "United States of America", "Italy", "France", "United Kingdom", "Canada", "Netherlands", "Germany")
+    country_colors_factor = colorFactor(country_palette, countries)
     
     # Define a named vector to map countries to colors
     country_colors <- c("Australia" = country_palette[1],
-                        "United States of America" = country_palette[2],
-                        "Italy" = country_palette[3],
-                        "France" = country_palette[4],
-                        "United Kingdom" = country_palette[5],
-                        "Canada" = country_palette[6],
-                        "Netherlands" = country_palette[7],
-                        "Germany" = country_palette[8])
+                        "United States of America" = country_palette[8],
+                        "Italy" = country_palette[5],
+                        "France" = country_palette[3],
+                        "United Kingdom" = country_palette[7],
+                        "Canada" = country_palette[2],
+                        "Netherlands" = country_palette[6],
+                        "Germany" = country_palette[4])
     
     output$incomePlot <- renderPlot({
       df <- rv$income %>%
