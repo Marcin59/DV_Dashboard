@@ -372,8 +372,9 @@ function(input, output, session) {
         left_join(original_stores, by = "StoreKey") %>%
         ggplot(aes(x = reorder(State, TotalSales), y = TotalSales)) +
         coord_flip() +
-        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
-        geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        geom_bar(stat = "identity", aes(fill = Country)) +
+        scale_fill_manual(values = country_colors) +
+        geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "black") +  # Center the labels
         labs(x = "Store", y = "Total Income($)") +
         theme(axis.text.y = element_blank(),           # Remove x-axis labels
               legend.position = "none")                # Remove legend
@@ -389,8 +390,9 @@ function(input, output, session) {
         left_join(original_stores, by = "StoreKey") %>%
         ggplot(aes(x = reorder(State, TotalSales), y = TotalSales)) +
         coord_flip() +
-        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
-        geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        geom_bar(stat = "identity", aes(fill = Country)) +
+        scale_fill_manual(values = country_colors) +
+        geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "black") +  # Center the labels
         labs(x = "Store", y = "Total Income($)") +
         theme(axis.text.y = element_blank(),           # Remove x-axis labels
               legend.position = "none")                # Remove legend
