@@ -298,35 +298,68 @@ function(input, output, session) {
         )
     })
     output$top_products <- renderPlot({
-      sales %>%
+      top3 <- sales %>%
         filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
         group_by(ProductKey) %>%
-        summarise(TotalSales = sum(Quantity)) %>%  # Use sum(Quantity) to get the total sales
+        summarise(TotalSales = sum(Quantity)) %>%
         top_n(3, TotalSales) %>%
-        head(3) %>%
+        head(3)
+      
+      plot_data <- sales %>%
+        filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
+        filter(ProductKey %in% top3$ProductKey) %>%
         left_join(products, by = "ProductKey") %>%
-        ggplot(aes(y = reorder(Product.Name, TotalSales), x = TotalSales)) +  # Swap axes
-        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
-        geom_text(aes(label = Product.Name), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        group_by(ProductKey, Country, Product.Name) %>%
+        summarise(TotalQuantity = sum(Quantity)) %>%
+        ungroup()
+      
+      df_max <- plot_data %>%
+        group_by(Product.Name) %>%
+        summarise(max = sum(TotalQuantity))
+      
+      plot_data <- plot_data %>%
+        left_join(df_max, by = "Product.Name")
+      
+      ggplot(plot_data, aes(y = reorder(Product.Name, max), x = TotalQuantity)) +
+        geom_col(aes(fill = Country)) +
+        scale_fill_manual(values = country_colors) +  # Use the named vector for colors
+        geom_text(data = df_max, aes(label = Product.Name, x = max), hjust = 1.1, vjust = 0.5, color = "black") +
         labs(x = "Total Sales", y = "Product") +
-        theme(axis.text.y = element_blank(),           # Remove x-axis labels
-              legend.position = "none")                # Remove legend
+        theme(axis.text.y = element_blank(),          # Remove y-axis labels
+              legend.position = "none")               # Remove legend     
     })
     
+    
     output$bottom_products <- renderPlot({
-      sales %>%
+      bot3 <- sales %>%
         filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
         group_by(ProductKey) %>%
-        summarise(TotalSales = sum(Quantity)) %>%  # Use sum(Quantity) to get the total sales
+        summarise(TotalSales = sum(Quantity)) %>%
         top_n(-3, TotalSales) %>%
-        tail(3) %>%
+        tail(3)
+      
+      plot_data <- sales %>%
+        filter(Country %in% rv$stores[rv$stores$clicked == 1,]$Country) %>%
+        filter(ProductKey %in% bot3$ProductKey) %>%
         left_join(products, by = "ProductKey") %>%
-        ggplot(aes(y = reorder(Product.Name, TotalSales), x = TotalSales)) +  # Swap axes
-        geom_bar(stat = "identity", color = "#3c8dbc", fill = "#3c8dbc") +
-        geom_text(aes(label = Product.Name), hjust = 1.1, vjust = 0.5, color = "white") +  # Center the labels
+        group_by(ProductKey, Country, Product.Name) %>%
+        summarise(TotalQuantity = sum(Quantity)) %>%
+        ungroup()
+      
+      df_max <- plot_data %>%
+        group_by(Product.Name) %>%
+        summarise(max = sum(TotalQuantity))
+      
+      plot_data <- plot_data %>%
+        left_join(df_max, by = "Product.Name")
+      
+      ggplot(plot_data, aes(y = reorder(Product.Name, max), x = TotalQuantity)) +
+        geom_col(aes(fill = Country)) +
+        scale_fill_manual(values = country_colors) +  # Use the named vector for colors
+        geom_text(data = df_max, aes(label = Product.Name, x = max), hjust = 1.1, vjust = 0.5, color = "black") +
         labs(x = "Total Sales", y = "Product") +
-        theme(axis.text.y = element_blank(),           # Remove x-axis labels
-              legend.position = "none")                # Remove legend
+        theme(axis.text.y = element_blank(),          # Remove y-axis labels
+              legend.position = "none")               # Remove legend  
     })
     
     output$top_stores <- renderPlot({
