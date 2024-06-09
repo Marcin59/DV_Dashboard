@@ -12,7 +12,7 @@ library(leaflet)
 library(shinydashboard)
 
 dashboardPage(
-  dashboardHeader(title = "Dashboard"),
+  dashboardHeader(title = "Electronics Retailer"),
   dashboardSidebar(sidebarMenu(
     menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
     menuItem("Products", tabName = "products", icon = icon("th")),

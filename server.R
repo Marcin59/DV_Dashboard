@@ -326,6 +326,7 @@ function(input, output, session) {
         geom_text(data = df_max, aes(label = Product.Name, x = max), hjust = 1.1, vjust = 0.5, color = "black") +
         labs(x = "Total Sales", y = "Product") +
         theme(axis.text.y = element_blank(),          # Remove y-axis labels
+              panel.background=element_rect(fill = "transparent",colour = NA),
               legend.position = "none")               # Remove legend     
     })
     
@@ -359,6 +360,7 @@ function(input, output, session) {
         geom_text(data = df_max, aes(label = Product.Name, x = max), hjust = 1.1, vjust = 0.5, color = "black") +
         labs(x = "Total Sales", y = "Product") +
         theme(axis.text.y = element_blank(),          # Remove y-axis labels
+              panel.background=element_rect(fill = "transparent",colour = NA),
               legend.position = "none")               # Remove legend  
     })
     
@@ -376,7 +378,8 @@ function(input, output, session) {
         scale_fill_manual(values = country_colors) +
         geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "black") +  # Center the labels
         labs(x = "Store", y = "Total Income($)") +
-        theme(axis.text.y = element_blank(),           # Remove x-axis labels
+        theme(axis.text.y = element_blank(),           # Remove x-axis 
+              panel.background=element_rect(fill = "transparent",colour = NA),
               legend.position = "none")                # Remove legend
     })
     
@@ -395,6 +398,7 @@ function(input, output, session) {
         geom_text(aes(label = State), hjust = 1.1, vjust = 0.5, color = "black") +  # Center the labels
         labs(x = "Store", y = "Total Income($)") +
         theme(axis.text.y = element_blank(),           # Remove x-axis labels
+              panel.background=element_rect(fill = "transparent",colour = NA),
               legend.position = "none")                # Remove legend
     })
 }
