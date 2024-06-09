@@ -5,6 +5,17 @@ section.content{
   background:#3c8dbc !important;
 }
 
+#about-box{
+  padding: 20px max(20px, 20vw) 0 max(20px, 20vw) !important;
+  text-align: center;
+  overflow: auto;
+}
+
+.box{
+  box-shadow: 0 0 0 0 !important;
+  border-top: 0 !important;
+}
+
 .col-sm-4{
   padding: 0 !important;
 }

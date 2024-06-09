@@ -12,11 +12,12 @@ library(leaflet)
 library(shinydashboard)
 
 dashboardPage(
-  dashboardHeader(title = "Electronics Retailer"),
+  dashboardHeader(title = "Dashboard"),
   dashboardSidebar(sidebarMenu(
     menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
     menuItem("Products", tabName = "products", icon = icon("th")),
-    menuItem("Currency Exchange", tabName = "currency_exchange", icon = icon("exchange"))
+    menuItem("Currency Exchange", tabName = "currency_exchange", icon = icon("exchange")),
+    menuItem("About", tabName = "about", icon = icon("address-card"))
   )),
   dashboardBody(includeCSS("./styles.css"), fluidPage(
     tags$head(
@@ -114,6 +115,30 @@ dashboardPage(
         # ),
         box(width=12, plotOutput("currencyRatePlot", height = "calc((100vh - 50px) * 0.9)")),
         # put previous box on the bottom of the page
+      )
+    ),
+    tabItem(
+      tabName = 'about',
+      box(
+        width = 12,
+        height = "calc(100vh - 50px)",
+        id="about-box",
+        box(
+          width = 12,
+          height = "200px",
+          img(src='Logo.png', height = "150px", align = "center")
+        ),
+        h2("General"),
+        h4("This dashboard offers a detailed analysis of sales performance across various countries, highlighting key metrics such as the number of stores, customers, products, and income trends. It also provides specific insights into product details, including cost and price, with filtering options, and displays currency exchange rates over time."),
+        h2("Overview"),
+        h4("This page provides a comprehensive overview of information about the sales performance of stores in various countries and showcases the most and least important products.
+The map is interactive and allows users to select which countries should be taken into consideration in other graphs. It also shows the number of stores and the name of each country on hover.
+The page shows general information, such as the number of stores, customers, and products.
+And more specific information: the cumulative income of the company, best and worst sold products, and best and worst stores. Each graph displays the country to which the data belongs."),
+        h2("Products"),
+        h4("The page contains information about products. Each row provides the same, brand, color, cost (in USD), price (in USD), subcategory, and category. The data can be filtered based on category, brand, and color."),
+        h2("Currency Exchange"),
+        h4("It can show conversion rates for EUR, GBP, CAD, AUD to USD over time. Data above the last value is shown as green and under it as red.")
       )
     )
   )))
