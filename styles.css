@@ -6,7 +6,7 @@ section.content{
 }
 
 #about-box{
-  padding: 20px max(20px, 20vw) 0 max(20px, 20vw) !important;
+  padding: 20px max(20px, 15vw) 0 max(20px, 15vw) !important;
   text-align: center;
   overflow: auto;
 }
